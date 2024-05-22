@@ -14,10 +14,10 @@ class MyAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data.decode(), "<p>Hello, World!</p>")
 
-    def test_getevents(self):
-        response = self.app.get("/events")
+    def test_getevent_by_id(self):
+        response = self.app.get("/events/21")
         self.assertEqual(response.status_code, 200)
-        self.assertTrue("Pastry Competition" in response.data.decode())
+        self.assertTrue("PSU" in response.data.decode())
 
 if __name__ == "__main__":
     unittest.main()
