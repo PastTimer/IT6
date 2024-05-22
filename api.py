@@ -1,30 +1,32 @@
-from flask import Flask
+from flask import Flask, make_response, jsonify
 from flask_mysqldb import MySQL
 
 app = Flask(__name__)
+app.config["MYSQL_HOST"] = "localhost"
+app.config["MYSQL_USER"] = "root"
+app.config["MYSQL_PASSWORD"] = "root"
+app.config["MYSQL_DB"] = "hobbies&pasttime"
+
+app.config["MYSQL_CURSORCLASS"] = "DictCursor"
+
+mysql = MySQL(app)
 
 @app.route("/")
 def hello_world():
     return "<p>Hello, World!</p>"
 
-if __name__ == "__main__":
-    app.run(debug=True)
-
-app.config["MYSQL_USER"] = "root"
-app.config["MYSQL_PASSWORD"] = "root"
-app.config["MYSQL_DB"] = "database"
-
-app.config["MYSQL_CURSORCLASS"] = "DictCursor"
-app.config["MYSQL_CUSTOM_OPTIONS"] = {"ssl": {"ca": "/path/to/ca-file"}} 
-
-mysql = MySQL(app)
-
-@app.route("/")
-def users():
+@app.route("/events", methods=["GET"])
+def get_events():
     cur = mysql.connection.cursor()
-    cur.execute("""SELECT user, host FROM mysql.user""")
-    rv = cur.fetchall()
-    return str(rv)
+    query="""
+    select * from events;
+    """
+    cur.execute(query)
+    data = cur.fetchall()
+    cur.close()
+    
+    return make_response(jsonify(data), 200)
 
 if __name__ == "__main__":
     app.run(debug=True)
+    
