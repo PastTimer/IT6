@@ -88,6 +88,7 @@ def add_member():
     print("row(s) affected :{}".format(cur.rowcount))
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value added successfully", 
                  "rows_affected": rows_affected}), 201,)
@@ -108,6 +109,7 @@ def add_hobby():
     print("row(s) affected :{}".format(cur.rowcount))
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value added successfully", 
                  "rows_affected": rows_affected}), 201,)
@@ -128,6 +130,7 @@ def add_organizations():
     print("row(s) affected :{}".format(cur.rowcount))
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value added successfully", 
                  "rows_affected": rows_affected}), 201,)
@@ -150,6 +153,7 @@ def add_events():
     print("row(s) affected :{}".format(cur.rowcount))
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value added successfully", 
                  "rows_affected": rows_affected}), 201,)
@@ -172,6 +176,7 @@ def add_memberships():
     print("row(s) affected :{}".format(cur.rowcount))
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value added successfully", 
                  "rows_affected": rows_affected}), 201,)
@@ -191,6 +196,7 @@ def update_members(id):
     mysql.connection.commit()
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value updated successfully", 
                  "rows_affected": rows_affected}),200,)
@@ -206,6 +212,7 @@ def update_hobbies(id):
     mysql.connection.commit()
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value updated successfully", 
                  "rows_affected": rows_affected}),200,)
@@ -221,6 +228,7 @@ def update_organizations(id):
     mysql.connection.commit()
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value updated successfully", 
                  "rows_affected": rows_affected}),200,)
@@ -239,11 +247,12 @@ def update_events(id):
     mysql.connection.commit()
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value updated successfully", 
                  "rows_affected": rows_affected}),200,)
 
-@app.route("/memberships/update/<id>", methods=["PUT"])
+@app.route("/memberships/update/<int:id>", methods=["PUT"])
 def update_membersships(id):
     cur = mysql.connection.cursor()
     info = request.get_json()
@@ -257,21 +266,83 @@ def update_membersships(id):
     mysql.connection.commit()
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify({"message": "Value updated successfully", 
                  "rows_affected": rows_affected}),200,)
 
 ##DELETE
-@app.route("/members/<int:id>", methods=["DELETE"])
+@app.route("/members/del/<int:id>", methods=["DELETE"])
 def delete_member(id):
     cur = mysql.connection.cursor()
     cur.execute(""" DELETE FROM members where member_id = %s """, (id,))
     mysql.connection.commit()
     rows_affected = cur.rowcount
     cur.close()
+    response.headers['Content-Type'] = 'application/xml'
     return make_response(
         jsonify(
             {"message": "Value deleted successfully", "rows_affected": rows_affected}),200,)
+
+@app.route("/hobbies_and_pasttime/del/<id>", methods=["DELETE"])
+def delete_hobby(id):
+    cur = mysql.connection.cursor()
+    cur.execute(""" DELETE FROM hobbies_and_pasttime where hobby_code = %s """, (id,))
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    response.headers['Content-Type'] = 'application/xml'
+    return make_response(
+        jsonify(
+            {"message": "Value deleted successfully", "rows_affected": rows_affected}),200,)
+
+@app.route("/organizations/del/<id>", methods=["DELETE"])
+def delete_org(id):
+    cur = mysql.connection.cursor()
+    cur.execute(""" DELETE FROM organizations where organization_id = %s """, (id,))
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    response.headers['Content-Type'] = 'application/xml'
+    return make_response(
+        jsonify(
+            {"message": "Value deleted successfully", "rows_affected": rows_affected}),200,)
+
+@app.route("/events/del/<int:id>", methods=["DELETE"])
+def delete_event(id):
+    cur = mysql.connection.cursor()
+    cur.execute(""" DELETE FROM events where event_id = %s """, (id,))
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    response.headers['Content-Type'] = 'application/xml'
+    return make_response(
+        jsonify(
+            {"message": "Value deleted successfully", "rows_affected": rows_affected}),200,)
+
+@app.route("/memberships/del/<int:id>", methods=["DELETE"])
+def delete_memberships(id):
+    cur = mysql.connection.cursor()
+    cur.execute(""" DELETE FROM memberships where membership_id = %s """, (id,))
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    response.headers['Content-Type'] = 'application/xml'
+    return make_response(
+        jsonify(
+            {"message": "Value deleted successfully", "rows_affected": rows_affected}),200,)
+
+##URI
+@app.route("/members/format", methods=["GET"])
+def get_params():
+    format_type = request.args.get('format', 'json')
+    data = {"format": format_type, "foo": "bar"}
+    if format_type.lower() == 'xml':
+        response = make_response("<data><format>xml</format><foo>bar</foo></data>")
+        response.headers['Content-Type'] = 'application/xml'
+    else:
+        response = jsonify(data)
+    return response
 
 if __name__ == "__main__":
     app.run(debug=True)
