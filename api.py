@@ -99,7 +99,7 @@ def add_hobby():
     cur = mysql.connection.cursor()
     info = request.get_json()
     hobby_code = info["hobby_code"]
-    hobby_desc = info["hobby_description"]
+    hobby_desc = info["hobby_desc"]
     cur.execute(
         """ INSERT INTO hobbies_and_pasttime (hobby_code, hobby_desc) VALUES (%s, %s)""",
         (hobby_code, hobby_desc),
@@ -118,8 +118,8 @@ def add_organizations():
         return make_response(jsonify({"error": "Content-Type must be application/json"}), 415)
     cur = mysql.connection.cursor()
     info = request.get_json()
-    organization_id = info["organization_code"]
-    organization_details = info["organization_description"]
+    organization_id = info["organization_id"]
+    organization_details = info["organization_details"]
     cur.execute(
         """ INSERT INTO organizations (organization_id, organization_details) VALUES (%s, %s)""",
         (organization_id, organization_details),
@@ -175,6 +175,103 @@ def add_memberships():
     return make_response(
         jsonify({"message": "Value added successfully", 
                  "rows_affected": rows_affected}), 201,)
+    
+##PUT
+@app.route("/members/update/<int:id>", methods=["PUT"])
+def update_members(id):
+    cur = mysql.connection.cursor()
+    info = request.get_json()
+    first_name = info["first_name"]
+    last_name = info["last_name"]
+    address = info["address"]
+    other_details = info["other_details"]
+    cur.execute(
+        """ UPDATE members SET first_name = %s, last_name = %s, address = %s, other_details = %s WHERE member_id = %s """,
+        (first_name, last_name, address, other_details, id),)
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    return make_response(
+        jsonify({"message": "Value updated successfully", 
+                 "rows_affected": rows_affected}),200,)
+
+@app.route("/hobbies_and_pasttime/update/<id>", methods=["PUT"])
+def update_hobbies(id):
+    cur = mysql.connection.cursor()
+    info = request.get_json()
+    hobby_desc = info["hobby_desc"]
+    cur.execute(
+        """ UPDATE hobbies_and_pasttime SET hobby_desc = %s WHERE hobby_code = %s """,
+        (hobby_desc, id),)
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    return make_response(
+        jsonify({"message": "Value updated successfully", 
+                 "rows_affected": rows_affected}),200,)
+
+@app.route("/organizations/update/<id>", methods=["PUT"])
+def update_organizations(id):
+    cur = mysql.connection.cursor()
+    info = request.get_json()
+    organization_details = info["organization_details"]
+    cur.execute(
+        """ UPDATE organizations SET organization_details = %s WHERE organization_id = %s """,
+        (organization_details, id),)
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    return make_response(
+        jsonify({"message": "Value updated successfully", 
+                 "rows_affected": rows_affected}),200,)
+
+@app.route("/events/update/<int:id>", methods=["PUT"])
+def update_events(id):
+    cur = mysql.connection.cursor()
+    info = request.get_json()
+    event_name = info["event_name"]
+    event_description = info["event_description"]
+    location = info["location"]
+    other_details = info["other_details"]
+    cur.execute(
+        """ UPDATE events SET event_name = %s, event_description = %s, location = %s, other_details = %s WHERE event_id = %s """,
+        (event_name, event_description, location, other_details, id),)
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    return make_response(
+        jsonify({"message": "Value updated successfully", 
+                 "rows_affected": rows_affected}),200,)
+
+@app.route("/memberships/update/<id>", methods=["PUT"])
+def update_membersships(id):
+    cur = mysql.connection.cursor()
+    info = request.get_json()
+    level_of_ability = info["level_of_ability"]
+    hobby_code = info["hobby_code"]
+    member_id = info["member_id"]
+    organisation_id = info["organisation_id"]
+    cur.execute(
+        """ UPDATE memberships SET level_of_ability = %s, hobby_code = %s, member_id = %s, organisation_id = %s WHERE membership_id = %s """,
+        (level_of_ability, hobby_code, member_id, organisation_id, id),)
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    return make_response(
+        jsonify({"message": "Value updated successfully", 
+                 "rows_affected": rows_affected}),200,)
+
+##DELETE
+@app.route("/members/<int:id>", methods=["DELETE"])
+def delete_member(id):
+    cur = mysql.connection.cursor()
+    cur.execute(""" DELETE FROM members where member_id = %s """, (id,))
+    mysql.connection.commit()
+    rows_affected = cur.rowcount
+    cur.close()
+    return make_response(
+        jsonify(
+            {"message": "Value deleted successfully", "rows_affected": rows_affected}),200,)
 
 if __name__ == "__main__":
     app.run(debug=True)
