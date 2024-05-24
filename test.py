@@ -1,6 +1,9 @@
 import unittest
 import warnings
 from api import app
+from flask_testing import TestCase
+from flask import Flask, jsonify
+import json
 
 class MyAppTests(unittest.TestCase):
     def setUp(self):
@@ -55,7 +58,13 @@ class MyAppTests(unittest.TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTrue("Sheila" in response.data.decode())
 
-###POST 
+###POST
+
+    def test_add_hobby(self):
+        data = {"hobby_code": "Dama", "hobby_desc": "eeasy mode chess"}
+        response = self.app.post('/hobbies_and_pasttime/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 201)
 
 ###UPDATE
 
