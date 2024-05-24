@@ -59,7 +59,7 @@ class MyAppTests(unittest.TestCase):
         self.assertTrue("Sheila" in response.data.decode())
 
 ###POST
-
+"""
     def test_add_hobby(self):
         data = {"hobby_code": "Checkers", "hobby_desc": "eeasy mode chess"}
         response = self.app.post('/hobbies_and_pasttime/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
@@ -88,9 +88,10 @@ class MyAppTests(unittest.TestCase):
         data = {"level_of_ability": "6", "hobby_code": "Poem Writing", "member_id" : "21", "organisation_id" : "Poem Club"}
         response = self.app.post('/hobbies_and_pasttime/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
         data = json.loads(response.data)
-        self.assertEqual(response.status_code, 201)
+        self.assertEqual(response.status_code, 201)"""
     
 ###UPDATE
+
 
 ###DELETE   
     

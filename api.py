@@ -36,17 +36,6 @@ def format_response(data, format):
     else:
         return make_response(jsonify(data), 200)
 
-@app.route("/search/<id>", methods=["GET"])
-def search_winemaker():
-    search_term = request.args.get("search_term")
-    cur = mysql.connection.cursor()
-    cur.execute("""
-                SELECT * FROM winemaker where winemaker_name LIKE %s 
-                """,('%' + search_term + '%',))
-    wines = cur.fetchall()
-    cur.close()
-    return make_response(jsonify(wines), 200)
-
 ###GET
 @app.route("/events", methods=["GET"])
 def get_events():
@@ -78,10 +67,34 @@ def get_memberships():
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
-###GET SPECIFIC
+###GET SPECIFIC (SEARCH)
 @app.route("/events/<int:id>", methods=["GET"])
 def get_event_by_id(id):
     data = data_fetch("""select * from events where event_id = %s;""", (id,))
+    response_format = request.args.get('format', 'json')
+    return format_response(data, response_format)
+
+@app.route("/hobbies_and_pasttime/<id>", methods=["GET"])
+def get_hobby_by_id(id):
+    data = data_fetch("""select * from hobbies_and_pasttime where hobby_code = %s;""", (id,))
+    response_format = request.args.get('format', 'json')
+    return format_response(data, response_format)
+
+@app.route("/members/<int:id>", methods=["GET"])
+def get_member_by_id(id):
+    data = data_fetch("""select * from members where member_id = %s;""", (id,))
+    response_format = request.args.get('format', 'json')
+    return format_response(data, response_format)
+
+@app.route("/memberships/<int:id>", methods=["GET"])
+def get_memebership_by_id(id):
+    data = data_fetch("""select * from memberships where membership_id = %s;""", (id,))
+    response_format = request.args.get('format', 'json')
+    return format_response(data, response_format)
+
+@app.route("/organizations/<id>", methods=["GET"])
+def get_org_by_id(id):
+    data = data_fetch("""select * from organizations where organization_id = %s;""", (id,))
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
