@@ -61,11 +61,35 @@ class MyAppTests(unittest.TestCase):
 ###POST
 
     def test_add_hobby(self):
-        data = {"hobby_code": "Dama", "hobby_desc": "eeasy mode chess"}
+        data = {"hobby_code": "Checkers", "hobby_desc": "eeasy mode chess"}
         response = self.app.post('/hobbies_and_pasttime/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 201)
 
+    def test_add_member(self):
+        data = {"first_name": "Dama", "last_name": "Raya", "address" : "PPC", "other_details" : ""}
+        response = self.app.post('/hobbies_and_pasttime/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 201)
+    
+    def test_add_organization(self):
+        data = {"organization_id": "Reading Society", "organization_details": "you read"}
+        response = self.app.post('/organizations/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 201)
+    
+    def test_add_event(self):
+        data = {"event_name": "Dama", "event_description": "Raya", "location" : "PPC", "other_details" : ""}
+        response = self.app.post('/events/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 201)
+    
+    def test_add_membership(self):
+        data = {"level_of_ability": "6", "hobby_code": "Poem Writing", "member_id" : "21", "organisation_id" : "Poem Club"}
+        response = self.app.post('/hobbies_and_pasttime/add', data=json.dumps(data), headers = {'Content-Type':'application/json'})
+        data = json.loads(response.data)
+        self.assertEqual(response.status_code, 201)
+    
 ###UPDATE
 
 ###DELETE   
