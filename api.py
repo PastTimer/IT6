@@ -44,7 +44,7 @@ def generate_jwt_token(user_id):
     secret_key = app.config['SECRET_KEY']
     payload = {
         'user_id': user_id,
-        'exp': datetime.utcnow() + timedelta(minutes=1)}
+        'exp': datetime.utcnow() + timedelta(days=1)}
     return jwt.encode(payload, secret_key, algorithm='HS256')
 
 def decode_jwt_token(token):
@@ -93,6 +93,12 @@ def login():
         </form>
     '''
 
+@app.route("/logout", methods=['POST'])
+def logout():
+    session.pop('token', None)
+    return jsonify({'message': 'Logged out successfully'}), 200
+
+
 ###GET
 @app.route("/events", methods=["GET"])
 @token_required
@@ -131,30 +137,35 @@ def get_memberships():
 
 ###GET SPECIFIC (SEARCH)
 @app.route("/events/<int:id>", methods=["GET"])
+@token_required
 def get_event_by_id(id):
     data = data_fetch("""select * from events where event_id = %s;""", (id,))
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/hobbies_and_pasttime/<id>", methods=["GET"])
+@token_required
 def get_hobby_by_id(id):
     data = data_fetch("""select * from hobbies_and_pasttime where hobby_code = %s;""", (id,))
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/members/<int:id>", methods=["GET"])
+@token_required
 def get_member_by_id(id):
     data = data_fetch("""select * from members where member_id = %s;""", (id,))
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/memberships/<int:id>", methods=["GET"])
+@token_required
 def get_memebership_by_id(id):
     data = data_fetch("""select * from memberships where membership_id = %s;""", (id,))
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/organizations/<id>", methods=["GET"])
+@token_required
 def get_org_by_id(id):
     data = data_fetch("""select * from organizations where organization_id = %s;""", (id,))
     response_format = request.args.get('format', 'json')
@@ -162,6 +173,7 @@ def get_org_by_id(id):
 
 ###GET FANCY
 @app.route("/hobbies_and_pasttime/<id>/members", methods=["GET"])
+@token_required
 def get_members_by_hobby(id):
     data = data_fetch("""
         SELECT m.first_name, m.last_name
@@ -176,6 +188,7 @@ def get_members_by_hobby(id):
 
 ###POST
 @app.route("/members/add", methods=["POST"])
+@token_required
 def add_member():
     if request.content_type != 'application/json':
         return make_response(jsonify({"error": "Content-Type must be application/json"}), 415)
@@ -199,6 +212,7 @@ def add_member():
     return response
 
 @app.route("/hobbies_and_pasttime/add", methods=["POST"])
+@token_required
 def add_hobby():
     if request.content_type != 'application/json':
         return make_response(jsonify({"error": "Content-Type must be application/json"}), 415)
@@ -221,6 +235,7 @@ def add_hobby():
     return response
 
 @app.route("/organizations/add", methods=["POST"])
+@token_required
 def add_organizations():
     if request.content_type != 'application/json':
         return make_response(jsonify({"error": "Content-Type must be application/json"}), 415)
@@ -242,6 +257,7 @@ def add_organizations():
     return response
 
 @app.route("/events/add", methods=["POST"])
+@token_required
 def add_events():
     if request.content_type != 'application/json':
         return make_response(jsonify({"error": "Content-Type must be application/json"}), 415)
@@ -267,6 +283,7 @@ def add_events():
     return response
 
 @app.route("/memberships/add", methods=["POST"])
+@token_required
 def add_memberships():
     if request.content_type != 'application/json':
         return make_response(jsonify({"error": "Content-Type must be application/json"}), 415)
@@ -291,6 +308,7 @@ def add_memberships():
     
 ##PUT
 @app.route("/members/update/<int:id>", methods=["PUT"])
+@token_required
 def update_members(id):
     cur = mysql.connection.cursor()
     info = request.get_json()
@@ -311,6 +329,7 @@ def update_members(id):
     return response
 
 @app.route("/hobbies_and_pasttime/update/<id>", methods=["PUT"])
+@token_required
 def update_hobbies(id):
     cur = mysql.connection.cursor()
     info = request.get_json()
@@ -328,6 +347,7 @@ def update_hobbies(id):
     return response
 
 @app.route("/organizations/update/<id>", methods=["PUT"])
+@token_required
 def update_organizations(id):
     cur = mysql.connection.cursor()
     info = request.get_json()
@@ -345,6 +365,7 @@ def update_organizations(id):
     return response
 
 @app.route("/events/update/<int:id>", methods=["PUT"])
+@token_required
 def update_events(id):
     cur = mysql.connection.cursor()
     info = request.get_json()
@@ -365,6 +386,7 @@ def update_events(id):
     return response
 
 @app.route("/memberships/update/<int:id>", methods=["PUT"])
+@token_required
 def update_membersships(id):
     cur = mysql.connection.cursor()
     info = request.get_json()
@@ -386,6 +408,7 @@ def update_membersships(id):
 
 ##DELETE
 @app.route("/members/del/<int:id>", methods=["DELETE"])
+@token_required
 def delete_member(id):
     cur = mysql.connection.cursor()
     cur.execute(""" DELETE FROM members where member_id = %s """, (id,))
@@ -399,6 +422,7 @@ def delete_member(id):
     return response
 
 @app.route("/hobbies_and_pasttime/del/<id>", methods=["DELETE"])
+@token_required
 def delete_hobby(id):
     cur = mysql.connection.cursor()
     cur.execute(""" DELETE FROM hobbies_and_pasttime where hobby_code = %s """, (id,))
@@ -412,6 +436,7 @@ def delete_hobby(id):
     return response
 
 @app.route("/organizations/del/<id>", methods=["DELETE"])
+@token_required
 def delete_org(id):
     cur = mysql.connection.cursor()
     cur.execute(""" DELETE FROM organizations where organization_id = %s """, (id,))
@@ -425,6 +450,7 @@ def delete_org(id):
     return response
 
 @app.route("/events/del/<int:id>", methods=["DELETE"])
+@token_required
 def delete_event(id):
     cur = mysql.connection.cursor()
     cur.execute(""" DELETE FROM events where event_id = %s """, (id,))
@@ -438,6 +464,7 @@ def delete_event(id):
     return response
 
 @app.route("/memberships/del/<int:id>", methods=["DELETE"])
+@token_required
 def delete_memberships(id):
     cur = mysql.connection.cursor()
     cur.execute(""" DELETE FROM memberships where membership_id = %s """, (id,))
