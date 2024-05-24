@@ -1,7 +1,11 @@
-from flask import Flask, make_response, jsonify, request, render_template_string, Response
+from flask import Flask, make_response, jsonify, request, render_template_string, Response, session, g
 from flask_mysqldb import MySQL
 import dicttoxml
 from xml.dom.minidom import parseString
+import jwt
+from datetime import datetime, timedelta
+from functools import wraps
+
 
 app = Flask(__name__)
 app.config["MYSQL_HOST"] = "localhost"
@@ -9,14 +13,14 @@ app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = "root"
 app.config["MYSQL_DB"] = "hobbies&pasttime"
 app.config["MYSQL_CURSORCLASS"] = "DictCursor"
+app.config['SECRET_KEY'] = 'super_duper_secret_key'
+app.config['SESSION_COOKIE_NAME'] = 'session_cookie_name'
+app.config['SESSION_COOKIE_PATH'] = '/'
+
 
 mysql = MySQL(app)
 
 ###Default
-@app.route("/")
-def hello_world():
-    return "<p>Hello, World!</p>"
-
 def data_fetch(query, params=None):
     cur = mysql.connection.cursor()
     if params:
@@ -36,32 +40,90 @@ def format_response(data, format):
     else:
         return make_response(jsonify(data), 200)
 
+def generate_jwt_token(user_id):
+    secret_key = app.config['SECRET_KEY']
+    payload = {
+        'user_id': user_id,
+        'exp': datetime.utcnow() + timedelta(minutes=1)}
+    return jwt.encode(payload, secret_key, algorithm='HS256')
+
+def decode_jwt_token(token):
+    secret_key = app.config['SECRET_KEY']
+    try:
+        payload = jwt.decode(token, secret_key, algorithms=['HS256'])
+        return payload
+    except jwt.ExpiredSignatureError:
+        return 'Signature expired. Please log in again.'
+    except jwt.InvalidTokenError:
+        return 'Invalid token. Please log in again.'
+
+def token_required(f):
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        token = session.get('token')
+        if not token:
+            return jsonify({'message': 'Token is missing!'}), 401
+        try:
+            data = decode_jwt_token(token)
+            current_user = data['user_id']
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token is expired!'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Token is invalid!'}), 401
+        return f(*args, **kwargs)
+    return decorated
+
+@app.route("/", methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == 'root' and password == 'root':
+            user_id = 1
+            token = generate_jwt_token(user_id)
+            session['token'] = token 
+            return jsonify({'message': 'Login successful', 'token': token}), 200
+        else:
+            return make_response('Could not verify', 401, {'WWW-Authenticate': 'Basic realm="Login required!"'})
+    return '''
+        <form method="post">
+            <p><input type=text name=username>
+            <p><input type=password name=password>
+            <p><input type=submit value=Login>
+        </form>
+    '''
+
 ###GET
 @app.route("/events", methods=["GET"])
+@token_required
 def get_events():
     data = data_fetch("""select * from events;""")
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/members", methods=["GET"])
+@token_required
 def get_members():
     data = data_fetch("""select * from members;""")
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/hobbies_and_pasttime", methods=["GET"])
+@token_required
 def get_hobbies_and_pasttime():
     data = data_fetch("""select * from hobbies_and_pasttime;""")
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/organizations", methods=["GET"])
+@token_required
 def get_organizations():
     data = data_fetch("""select * from organizations;""")
     response_format = request.args.get('format', 'json')
     return format_response(data, response_format)
 
 @app.route("/memberships", methods=["GET"])
+@token_required
 def get_memberships():
     data = data_fetch("""select * from memberships;""")
     response_format = request.args.get('format', 'json')
@@ -111,26 +173,6 @@ def get_members_by_hobby(id):
     """, (id,))
     response_format = request.args.get('format', 'json')
     return format_response({"hobby_code": id, "count": len(data), "members": data}, response_format)
-
-@app.route("/search/<id>", methods=["GET"])
-def search(id):
-    data = data_fetch("""
-        SELECT *
-        FROM organizations o
-        JOIN memberships m ON o.organization_id = m.organization_id
-        JOIN members mb ON m.member_id = mb.member_id
-        JOIN hobbies_and_pasttime hp ON m.hobby_code = hp.hobby_code
-        LEFT JOIN events e ON m.event_id = e.event_id
-        WHERE mb.first_name LIKE %s
-        OR mb.last_name LIKE %s
-        OR mb.address LIKE %s
-        OR mb.other_details LIKE %s
-        OR e.event_name LIKE %s
-        OR e.event_description LIKE %s
-        OR hp.hobby_desc LIKE %s;
-    """, (id,))
-    response_format = request.args.get('format', 'json')
-    return format_response(data, response_format)
 
 ###POST
 @app.route("/members/add", methods=["POST"])
