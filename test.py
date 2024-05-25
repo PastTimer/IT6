@@ -1,5 +1,4 @@
 import unittest
-import warnings
 from api import app
 from flask_testing import TestCase
 from flask import Flask, jsonify
