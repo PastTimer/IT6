@@ -90,6 +90,27 @@ class MyAppTests(unittest.TestCase):
         data = json.loads(response.data)
         self.assertEqual(response.status_code, 201)
     
+##PUT TEST
+
+    def test_update_event(self):
+        headers = self.headers_with_token()
+        url = f'{self.base_url}/events/update/1'
+        data = {
+            "event_name": "Updated Event Name",
+            "event_description": "Updated Event Description",
+            "location": "Updated Location",
+            "other_details": "Updated Details"
+        }
+        response = requests.put(url, json=data, headers=headers)
+        self.assertEqual(response.status_code, 200)
+
+##DEL TEST
+
+    def test_delete_organization(self):
+        headers = self.headers_with_token()
+        url = f'{self.base_url}/organizations/del/1'
+        response = requests.delete(url, headers=headers)
+        self.assertEqual(response.status_code, 200)
 
 if __name__ == "__main__":
     unittest.main()
